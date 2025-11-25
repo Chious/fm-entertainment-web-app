@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-pure-white: #ffffff;
+  --color-red: #fc4747;
+  --color-dark-blue: #10141e;
+  --color-greyish-blue: #5a698f;
+  --color-semi-dark-blue: #161d2f;
+
+  /* Typography - Font Family */
+  --font-outfit: "Outfit Variable", "Outfit", system-ui, sans-serif;
+
+  /* Typography - Heading L */
+  --font-size-heading-l: 2rem;
+  --font-weight-heading-l: 300;
+  --line-height-heading-l: 2.4rem;
+  --letter-spacing-heading-l: -0.03125rem;
+
+  /* Typography - Heading M */
+  --font-size-heading-m: 1.5rem;
+  --font-weight-heading-m: 300;
+  --line-height-heading-m: 1.8rem;
+  --letter-spacing-heading-m: 0;
+
+  /* Typography - Heading S */
+  --font-size-heading-s: 1.5rem;
+  --font-weight-heading-s: 500;
+  --line-height-heading-s: 1.8rem;
+  --letter-spacing-heading-s: 0;
+
+  /* Typography - Heading XS */
+  --font-size-heading-xs: 1.125rem;
+  --font-weight-heading-xs: 500;
+  --line-height-heading-xs: 1.35rem;
+  --letter-spacing-heading-xs: 0;
+
+  /* Typography - Body M */
+  --font-size-body-m: 0.9375rem;
+  --font-weight-body-m: 300;
+  --line-height-body-m: 1.125rem;
+  --letter-spacing-body-m: 0;
+
+  /* Typography - Body S */
+  --font-size-body-s: 0.8125rem;
+  --font-weight-body-s: 300;
+  --line-height-body-s: 0.975rem;
+  --letter-spacing-body-s: 0;
+}
+
+/* Base Styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-outfit);
+  background-color: var(--color-dark-blue);
+  color: var(--color-pure-white);
+  margin: 0;
+  padding: 0;
+}
+
+/* Utility Classes for Typography */
+.heading-l {
+  font-size: var(--font-size-heading-l);
+  font-weight: var(--font-weight-heading-l);
+  line-height: var(--line-height-heading-l);
+  letter-spacing: var(--letter-spacing-heading-l);
+}
+
+.heading-m {
+  font-size: var(--font-size-heading-m);
+  font-weight: var(--font-weight-heading-m);
+  line-height: var(--line-height-heading-m);
+  letter-spacing: var(--letter-spacing-heading-m);
+}
+
+.heading-s {
+  font-size: var(--font-size-heading-s);
+  font-weight: var(--font-weight-heading-s);
+  line-height: var(--line-height-heading-s);
+  letter-spacing: var(--letter-spacing-heading-s);
+}
+
+.heading-xs {
+  font-size: var(--font-size-heading-xs);
+  font-weight: var(--font-weight-heading-xs);
+  line-height: var(--line-height-heading-xs);
+  letter-spacing: var(--letter-spacing-heading-xs);
+}
+
+.body-m {
+  font-size: var(--font-size-body-m);
+  font-weight: var(--font-weight-body-m);
+  line-height: var(--line-height-body-m);
+  letter-spacing: var(--letter-spacing-body-m);
+}
+
+.body-s {
+  font-size: var(--font-size-body-s);
+  font-weight: var(--font-weight-body-s);
+  line-height: var(--line-height-body-s);
+  letter-spacing: var(--letter-spacing-body-s);
+}
+
+body {
+  font-family: "Outfit Variable", "Outfit", system-ui, sans-serif;
+}
