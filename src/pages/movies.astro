@@ -3,10 +3,10 @@ import Layout from '@/layouts/Layout.astro';
 import SearchBar from '@/components/SearchBar.astro';
 import SearchScript from '@/components/SearchScript.astro';
 import LazyMediaCard from '@/components/LazyMediaCard.astro';
-import data from "@/constants/data.json";
+import { fetchMovies } from '@/lib/media';
 
-// Filter only movies
-const movieItems = data.filter(item => item.category === "Movie");
+// Fetch only movies from OMDB API
+const movieItems = await fetchMovies();
 ---
 
 <Layout title="Movies - Entertainment Web App">

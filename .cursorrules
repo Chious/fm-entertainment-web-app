@@ -1,0 +1,132 @@
+# Cursor AI Rules for this Project
+
+## Documentation Guidelines
+
+### ❌ DON'T: Create documentation files without asking
+
+- **NEVER** automatically create `.md` files unless:
+  1. User explicitly requests documentation
+  2. User confirms they want documentation after you ask
+- **ALWAYS** ask first: "Would you like me to create documentation for this?"
+
+### ✅ DO: Focus on code implementation
+
+- Prioritize implementing features over writing documentation
+- Write inline comments in code instead of separate docs when appropriate
+- Only create documentation when it adds significant value
+
+### Examples
+
+**Bad ❌:**
+
+```
+User: "Fix the image loading issue"
+AI: [fixes code] + [creates IMAGE-HANDLING.md, FIXES.md, TROUBLESHOOTING.md]
+```
+
+**Good ✅:**
+
+```
+User: "Fix the image loading issue"
+AI: [fixes code] + [adds inline comments explaining the fix]
+AI: "Would you like me to create documentation explaining this fix?"
+```
+
+---
+
+## When Documentation IS Appropriate
+
+Create docs WITHOUT asking only if:
+
+- User explicitly says "document this"
+- User asks "how do I use X?" (README updates)
+- User requests a guide or tutorial
+- It's a critical breaking change that affects setup
+
+---
+
+## Project-Specific Guidelines
+
+### This Project (Entertainment Web App)
+
+**Tech Stack:**
+
+- Astro (SSR + ClientRouter)
+- React (UI components with client directives)
+- TypeScript
+- Tailwind CSS
+- OMDB API integration
+
+**Code Style:**
+
+- Use Tailwind CSS (no custom CSS files)
+- Prefer `client:visible` over `client:load` for React components
+- Always add TypeScript types
+- Use `import.meta.env` for environment variables (not `process.env`)
+
+**File Organization:**
+
+- `/src/lib/` - Utility functions and API calls
+- `/src/components/` - Astro and React components
+- `/src/pages/` - Page routes
+- `/src/constants/` - Configuration files
+
+**Common Patterns:**
+
+1. Remote images: Check if URL starts with `http://` or `https://`
+2. Client-side scripts: Use both `DOMContentLoaded` and `astro:page-load` events
+3. SSR data fetching: Use `await` in frontmatter (---...---)
+
+---
+
+## General AI Assistant Rules
+
+### Communication
+
+- Be concise but thorough
+- Ask clarifying questions when requirements are unclear
+- Suggest alternatives when there's a better approach
+- Explain trade-offs for important decisions
+
+### Code Changes
+
+- Always read the file before modifying
+- Check for linter errors after changes
+- Preserve existing code style and patterns
+- Test critical changes when possible
+
+### Documentation (The Key Rule!)
+
+- **Default:** Don't create `.md` files
+- **Exception:** User explicitly requests or confirms
+- **Alternative:** Use inline comments, JSDoc, or TypeScript types instead
+
+---
+
+## Examples of When to Ask
+
+```
+User: "Add a new feature X"
+AI: [implements feature with inline comments]
+AI: "Feature implemented! Would you like me to create:
+     - A guide for using this feature?
+     - API documentation?
+     - A migration guide?"
+```
+
+```
+User: "Integrate Y API"
+AI: [implements integration]
+AI: "Integration complete. The code includes inline comments explaining usage.
+     Would you like a separate setup guide in markdown?"
+```
+
+---
+
+## Summary
+
+**Remember:** Code is documentation too!
+
+Good code with clear names, types, and comments is often better than external documentation that can become outdated.
+
+**Always ask before creating `.md` files!** 📝❓

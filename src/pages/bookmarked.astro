@@ -3,11 +3,14 @@ import Layout from '@/layouts/Layout.astro';
 import SearchBar from '@/components/SearchBar.astro';
 import SearchScript from '@/components/SearchScript.astro';
 import LazyMediaCard from '@/components/LazyMediaCard.astro';
-import data from "@/constants/data.json";
+import { fetchBookmarkedMedia, filterMedia } from '@/lib/media';
 
-// Filter bookmarked items
-const bookmarkedMovies = data.filter(item => item.isBookmarked && item.category === "Movie");
-const bookmarkedTVSeries = data.filter(item => item.isBookmarked && item.category === "TV Series");
+// Fetch bookmarked items from OMDB API
+const bookmarkedItems = await fetchBookmarkedMedia();
+
+// Separate by category
+const bookmarkedMovies = filterMedia(bookmarkedItems, { category: "Movie" });
+const bookmarkedTVSeries = filterMedia(bookmarkedItems, { category: "TV Series" });
 ---
 
 <Layout title="Bookmarked - Entertainment Web App">

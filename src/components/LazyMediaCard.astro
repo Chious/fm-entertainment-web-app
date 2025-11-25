@@ -17,14 +17,28 @@ interface Props {
 
 const { title, thumbnail, year, category, rating, isBookmarked, index } = Astro.props;
 
-const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/thumbnails/**/*.jpg', { eager: true });
-const imagePath = thumbnail.replace("./assets/", "/src/assets/");
-const imageModule = images[imagePath];
+// Check if thumbnail is a remote URL or local path
+const isRemoteUrl = thumbnail.startsWith('http://') || thumbnail.startsWith('https://');
+
+// For local images
+let imageModule;
+if (!isRemoteUrl) {
+  const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/thumbnails/**/*.jpg', { eager: true });
+  const imagePath = thumbnail.replace("./assets/", "/src/assets/");
+  imageModule = images[imagePath];
+}
 ---
 
 <div class="lazy-load relative cursor-pointer opacity-0 translate-y-5 transition-all duration-600 ease-in-out group" data-index={index}>
   <div class="relative rounded-lg overflow-hidden mb-2">
-    {imageModule && (
+    {isRemoteUrl ? (
+      <img 
+        src={thumbnail}
+        alt={title}
+        class="w-full h-auto block transition-transform duration-300 ease-in-out group-hover:scale-105"
+        loading="lazy"
+      />
+    ) : imageModule && (
       <Image 
         src={imageModule.default}
         alt={title}

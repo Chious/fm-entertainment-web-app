@@ -14,14 +14,20 @@ const { category, bookmarkedOnly = false } = Astro.props;
     if (!searchInput) return;
 
     let debounceTimer;
+    let abortController = null;
     
-    // Get the original section titles
+    // Store original content
+    const originalContent = {
+      sections: new Map(),
+      cards: [],
+    };
+    
+    // Get the original section titles and cards
     const sections = document.querySelectorAll('section');
-    const originalTitles = new Map();
     sections.forEach(section => {
       const title = section.querySelector('h2');
       if (title) {
-        originalTitles.set(section, title.textContent);
+        originalContent.sections.set(section, title.textContent);
       }
     });
     
@@ -31,69 +37,165 @@ const { category, bookmarkedOnly = false } = Astro.props;
     
     newSearchInput.addEventListener('input', (e) => {
       const target = e.target;
-      const searchTerm = target.value.toLowerCase().trim();
+      const searchTerm = target.value.trim();
       
       clearTimeout(debounceTimer);
       
-      debounceTimer = setTimeout(() => {
-        // Get all cards (both media-card and lazy-load classes)
-        const mediaCards = document.querySelectorAll('.media-card, .lazy-load');
-        const trendingCards = document.querySelectorAll('.trending-card');
-        
-        // Get sections
+      // Cancel previous request
+      if (abortController) {
+        abortController.abort();
+      }
+      
+      debounceTimer = setTimeout(async () => {
         const trendingSection = document.querySelector('.trending-section');
-        const allSections = document.querySelectorAll('section');
-        
-        let visibleCount = 0;
+        const recommendedSection = document.querySelector('section:not(.trending-section)');
+        const grid = recommendedSection?.querySelector('.grid');
         
         if (searchTerm === '') {
-          // Show all cards when search is empty
-          mediaCards.forEach(card => {
-            card.style.display = '';
-          });
-          trendingCards.forEach(card => {
-            card.style.display = '';
-          });
-          
-          // Show trending section on home page
+          // Restore original content
           if (trendingSection) trendingSection.style.display = '';
           
-          // Restore original section titles
-          sections.forEach(section => {
-            const title = section.querySelector('h2');
-            const originalTitle = originalTitles.get(section);
-            if (title && originalTitle) {
-              title.textContent = originalTitle;
-            }
+          // Restore original titles
+          originalContent.sections.forEach((title, section) => {
+            const h2 = section.querySelector('h2');
+            if (h2) h2.textContent = title;
           });
+          
+          // Remove loading/error states
+          if (grid) {
+            grid.classList.remove('opacity-50');
+            const loadingMsg = recommendedSection.querySelector('.search-loading');
+            const errorMsg = recommendedSection.querySelector('.search-error');
+            if (loadingMsg) loadingMsg.remove();
+            if (errorMsg) errorMsg.remove();
+          }
+          
+          // Reload page to restore original content
+          window.location.reload();
         } else {
-          // Hide trending section when searching
+          // Hide trending when searching
           if (trendingSection) trendingSection.style.display = 'none';
           
-          // Filter media cards
-          mediaCards.forEach(card => {
-            const title = card.querySelector('.text-sm, .text-[15px]')?.textContent?.toLowerCase() || '';
-            
-            if (title.includes(searchTerm)) {
-              card.style.display = '';
-              visibleCount++;
-            } else {
-              card.style.display = 'none';
-            }
-          });
+          // Show loading state
+          const title = recommendedSection?.querySelector('h2');
+          if (title) {
+            title.textContent = `Searching for '${searchTerm}'...`;
+          }
           
-          // Update section titles with search results
-          allSections.forEach(section => {
-            if (!section.classList.contains('trending-section')) {
-              const title = section.querySelector('h2');
-              if (title) {
-                const categoryText = category ? ` ${category === "Movie" ? "movies" : "TV series"}` : " results";
-                title.textContent = `Found ${visibleCount}${categoryText} for '${searchTerm}'`;
+          if (grid) {
+            grid.innerHTML = '<div class="search-loading col-span-full text-center py-8 text-greyish-blue">Searching TMDB...</div>';
+          }
+          
+          try {
+            // Create new abort controller for this request
+            abortController = new AbortController();
+            
+            // Search via API endpoint
+            const params = new URLSearchParams({
+              q: searchTerm,
+              limit: '20',
+            });
+            
+            if (category) {
+              params.append('category', category);
+            }
+            
+            const response = await fetch(`/api/search?${params.toString()}`, {
+              signal: abortController.signal,
+            });
+            
+            if (!response.ok) {
+              throw new Error('Search failed');
+            }
+            
+            const data = await response.json();
+            const results = data.results || [];
+            
+            // Update title with results count
+            if (title) {
+              const categoryText = category ? ` ${category === "Movie" ? "movies" : "TV series"}` : " results";
+              title.textContent = `Found ${results.length}${categoryText} for '${searchTerm}'`;
+            }
+            
+            // Render results
+            if (grid) {
+              if (results.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-8 text-greyish-blue">No results found</div>';
+              } else {
+                grid.innerHTML = results.map((item, index) => `
+                  <div class="lazy-load" data-index="${index}">
+                    <div class="relative cursor-pointer group">
+                      <div class="relative rounded-lg overflow-hidden mb-2">
+                        <img
+                          src="${item.thumbnail.regular.medium}"
+                          alt="${item.title}"
+                          class="w-full h-auto block transition-transform duration-300 ease-in-out group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div class="absolute top-2 right-2 z-2">
+                          <button
+                            class="bookmark-button w-8 h-8 rounded-full bg-dark-blue/50 hover:bg-pure-white flex items-center justify-center transition-all duration-200 group/bookmark"
+                            data-bookmarked="${item.isBookmarked}"
+                            aria-label="Toggle bookmark"
+                          >
+                            <svg width="12" height="14" xmlns="http://www.w3.org/2000/svg" class="bookmark-icon">
+                              <path
+                                d="m10.518.75.399 12.214-5.084-4.24-4.535 4.426L.75 1.036l9.768-.285Z"
+                                stroke="#FFF"
+                                stroke-width="1.5"
+                                fill="${item.isBookmarked ? '#FFF' : 'none'}"
+                                class="transition-all duration-200 group-hover/bookmark:stroke-dark-blue"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="space-y-[5px]">
+                        <div class="flex items-center gap-2 text-xs opacity-75 font-light">
+                          <span>${item.year}</span>
+                          <span class="w-[3px] h-[3px] rounded-full bg-white/50"></span>
+                          <span class="flex items-center gap-[6px]">
+                            ${item.category === 'Movie' 
+                              ? '<svg width="12" height="12" xmlns="http://www.w3.org/2000/svg"><path d="M10.173 0H1.827A1.827 1.827 0 0 0 0 1.827v8.346C0 11.183.818 12 1.827 12h8.346A1.827 1.827 0 0 0 12 10.173V1.827A1.827 1.827 0 0 0 10.173 0ZM2.4 5.4H1.2V4.2h1.2v1.2ZM1.2 6.6h1.2v1.2H1.2V6.6Zm9.6-1.2H9.6V4.2h1.2v1.2ZM9.6 6.6h1.2v1.2H9.6V6.6Zm0-3.6h1.2v1.2H9.6V3ZM2.4 3h1.2v1.2H2.4V3Zm7.2 0v1.2H3.6V3h6Zm0 4.8v1.2H3.6V7.8h6Zm-7.2 3h1.2v1.2H2.4v-1.2Zm7.2 1.2v-1.2h1.2v1.2H9.6Z" fill="currentColor"/></svg>' 
+                              : '<svg width="12" height="12" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.689H5.448L7.068.722 6.132 0 4.2 2.345 2.268.017l-.936.705 1.62 1.967H0V12h12V2.689Zm-4.8 8.147h-6V3.853h6v6.983Zm3.6-1.2H9.6V3.853h1.2v5.783Z" fill="currentColor"/></svg>'
+                            }
+                            ${item.category}
+                          </span>
+                          <span class="w-[3px] h-[3px] rounded-full bg-white/50"></span>
+                          <span>${item.rating}</span>
+                        </div>
+                        <h3 class="text-[15px] md:text-lg font-medium">${item.title}</h3>
+                      </div>
+                    </div>
+                  </div>
+                `).join('');
+                
+                // Re-initialize bookmark buttons
+                import('/src/components/bookmark-handlers.js').then(module => {
+                  if (module.initBookmarkButtons) {
+                    module.initBookmarkButtons();
+                  }
+                });
               }
             }
-          });
+          } catch (error) {
+            if (error.name === 'AbortError') {
+              // Request was cancelled, ignore
+              return;
+            }
+            
+            console.error('Search error:', error);
+            
+            if (title) {
+              title.textContent = 'Search failed';
+            }
+            
+            if (grid) {
+              grid.innerHTML = '<div class="search-error col-span-full text-center py-8 text-red-500">Search failed. Please try again.</div>';
+            }
+          }
         }
-      }, 300);
+      }, 500);
     });
   }
   

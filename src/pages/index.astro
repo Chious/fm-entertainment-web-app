@@ -4,11 +4,16 @@ import SearchBar from '@/components/SearchBar.astro';
 import SearchScript from '@/components/SearchScript.astro';
 import TrendingCard from '@/components/TrendingCard.astro';
 import LazyMediaCard from '@/components/LazyMediaCard.astro';
-import data from "@/constants/data.json";
+import { fetchTrendingMedia, fetchAllMedia } from '@/lib/media';
 
-// Filter trending and recommended items
-const trendingItems = data.filter(item => item.isTrending);
-const recommendedItems = data.filter(item => !item.isTrending);
+// Set cache header
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+
+// Fetch trending items (top 8 from TMDB's trending API)
+const trendingItems = await fetchTrendingMedia(8);
+
+// Fetch recommended items (popular movies + TV shows)
+const recommendedItems = await fetchAllMedia(12, 12);
 ---
 
 <Layout title="Home - Entertainment Web App">

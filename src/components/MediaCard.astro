@@ -16,16 +16,28 @@ interface Props {
 
 const { title, thumbnail, year, category, rating, isBookmarked } = Astro.props;
 
-// Convert relative path to absolute import
-const thumbnailPath = thumbnail.replace("./assets/", "@/assets/");
-const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/thumbnails/**/*.jpg', { eager: true });
-const imagePath = thumbnail.replace("./assets/", "/src/assets/");
-const imageModule = images[imagePath];
+// Check if thumbnail is a remote URL or local path
+const isRemoteUrl = thumbnail.startsWith('http://') || thumbnail.startsWith('https://');
+
+// For local images
+let imageModule;
+if (!isRemoteUrl) {
+  const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/thumbnails/**/*.jpg', { eager: true });
+  const imagePath = thumbnail.replace("./assets/", "/src/assets/");
+  imageModule = images[imagePath];
+}
 ---
 
 <div class="relative cursor-pointer group">
   <div class="relative rounded-lg overflow-hidden mb-2">
-    {imageModule && (
+    {isRemoteUrl ? (
+      <img 
+        src={thumbnail}
+        alt={title}
+        class="w-full h-auto block transition-transform duration-300 ease-in-out group-hover:scale-105"
+        loading="lazy"
+      />
+    ) : imageModule && (
       <Image 
         src={imageModule.default}
         alt={title}
