@@ -1,0 +1,20 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import logo from "@/assets/logo.svg";
+import { Image } from "astro:assets";
+import { SignupForm } from "@/components/SignupForm";
+import { getCurrentUser } from "@/lib/auth-utils";
+
+// Redirect if already logged in
+const user = await getCurrentUser(Astro);
+if (user) {
+  return Astro.redirect("/");
+}
+---
+
+<BaseLayout>
+  <main class="mx-auto w-screen h-screen container flex flex-col gap-8 items-center justify-start pt-12 px-4">
+    <Image src={logo} width={40} height={40} alt="logo" />
+    <SignupForm client:only="react" />
+  </main>
+</BaseLayout>
