@@ -1,0 +1,102 @@
+---
+import { Image } from "astro:assets"
+import logo from "@/assets/logo.svg"
+import home from "@/assets/icon-nav-home.svg";
+import movie from "@/assets/icon-nav-movies.svg"
+import tvseries from "@/assets/icon-nav-tv-series.svg"
+import bookmark from "@/assets/icon-nav-bookmark.svg"
+import avatar from "@/assets/image-avatar.png"
+import AvatarWrapper from "@/components/AvatarWrapper";
+---
+
+<nav class="fixed z-50 w-full md:w-auto md:h-full">
+   <div class="flex flex-row md:flex-col items-center bg-semi-dark-blue rounded-[10px] md:rounded-[20px] p-4 md:p-6 gap-6 md:gap-[75px] mx-4 my-4 md:mx-0 md:my-6 md:ml-6 md:h-[calc(100vh-48px)]">
+      <!-- Logo -->
+      <div class="shrink-0">
+         <a href="/" class="block">
+            <Image src={logo} alt="Entertainment App Logo" class="w-[25px] h-5 md:w-8 md:h-[25.6px]" />
+         </a>
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="flex flex-row md:flex-col items-center gap-6 md:gap-8 flex-1 md:flex-auto overflow-y-scroll">
+         <a href="/" class="nav-link group" aria-label="Home" data-path="/">
+            <Image src={home} alt="Home" class="nav-icon w-4 h-4 md:w-5 md:h-5 group-hover:brightness-0 group-hover:invert transition-all" />
+         </a>
+         <a href="/movies" class="nav-link group" aria-label="Movies" data-path="/movies">
+            <Image src={movie} alt="Movies" class="nav-icon w-4 h-4 md:w-5 md:h-5 group-hover:brightness-0 group-hover:invert transition-all" />
+         </a>
+         <a href="/tv-series" class="nav-link group" aria-label="TV Series" data-path="/tv-series">
+            <Image src={tvseries} alt="TV Series" class="nav-icon w-4 h-4 md:w-5 md:h-5 group-hover:brightness-0 group-hover:invert transition-all" />
+         </a>
+         <a href="/bookmarked" class="nav-link group" aria-label="Bookmarked" data-path="/bookmarked">
+            <Image src={bookmark} alt="Bookmarked" class="nav-icon w-4 h-4 md:w-5 md:h-5 group-hover:brightness-0 group-hover:invert transition-all" />
+         </a>
+      </div>
+
+      <!-- Avatar -->
+      <div class="shrink-0 ml-auto md:ml-0 md:mt-auto">
+         <AvatarWrapper client:load src={avatar.src} alt="User Avatar" fallback="CN" />
+      </div>
+   </div>
+</nav>
+
+<style>
+   .nav-link {
+      display: block;
+      position: relative;
+   }
+
+   .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 2px;
+      background-color: var(--color-pure-white);
+      transition: width 0.3s ease;
+   }
+
+   .nav-link:hover::after,
+   .nav-link:focus::after {
+      width: 100%;
+   }
+
+   /* Active state */
+   .nav-link.active::after {
+      width: 100%;
+   }
+
+   .nav-link.active .nav-icon {
+      filter: brightness(0) invert(1);
+   }
+</style>
+
+<script>
+  // Set active nav link based on current path
+  function updateActiveNav() {
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    // Remove all active classes first
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+    });
+    
+    // Add active class to current path
+    navLinks.forEach(link => {
+      const linkPath = link.getAttribute('data-path');
+      if (linkPath === currentPath) {
+        link.classList.add('active');
+      }
+    });
+  }
+  
+  // Run on initial load
+  document.addEventListener('DOMContentLoaded', updateActiveNav);
+  
+  // Run after view transitions (if using View Transitions API)
+  document.addEventListener('astro:page-load', updateActiveNav);
+</script>

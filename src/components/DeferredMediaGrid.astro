@@ -1,0 +1,39 @@
+---
+import MediaCard from "./MediaCard.astro";
+import MediaCardSkeleton from "./MediaCardSkeleton.astro";
+
+interface MediaItem {
+  title: string;
+  thumbnail: {
+    regular: {
+      small: string;
+      medium: string;
+      large: string;
+    };
+  };
+  year: number;
+  category: string;
+  rating: string;
+  isBookmarked: boolean;
+}
+
+interface Props {
+  items: MediaItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-y-6 md:gap-x-8 lg:grid-cols-4 lg:gap-y-8 lg:gap-x-10">
+  {items.map((item) => (
+    <MediaCard
+      title={item.title}
+      thumbnail={item.thumbnail.regular.medium}
+      year={item.year}
+      category={item.category as "Movie" | "TV Series"}
+      rating={item.rating}
+      isBookmarked={item.isBookmarked}
+    />
+  ))}
+</div>
+

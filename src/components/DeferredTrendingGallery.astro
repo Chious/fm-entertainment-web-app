@@ -1,0 +1,42 @@
+---
+import TrendingCard from "./TrendingCard.astro";
+
+interface MediaItem {
+  title: string;
+  thumbnail: {
+    trending?: {
+      small: string;
+      large: string;
+    };
+    regular: {
+      small: string;
+      medium: string;
+      large: string;
+    };
+  };
+  year: number;
+  category: string;
+  rating: string;
+  isBookmarked: boolean;
+}
+
+interface Props {
+  items: MediaItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="flex gap-4 md:gap-10 overflow-x-auto overflow-y-hidden pb-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+  {items.map((item) => (
+    <TrendingCard
+      title={item.title}
+      thumbnail={item.thumbnail.trending?.large || item.thumbnail.regular.large}
+      year={item.year}
+      category={item.category as "Movie" | "TV Series"}
+      rating={item.rating}
+      isBookmarked={item.isBookmarked}
+    />
+  ))}
+</div>
+

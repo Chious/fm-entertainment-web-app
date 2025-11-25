@@ -1,0 +1,36 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import SearchBar from '@/components/SearchBar.astro';
+import SearchScript from '@/components/SearchScript.astro';
+import LazyMediaCard from '@/components/LazyMediaCard.astro';
+import data from "@/constants/data.json";
+
+// Filter only movies
+const movieItems = data.filter(item => item.category === "Movie");
+---
+
+<Layout title="Movies - Entertainment Web App">
+	<div class="w-full max-w-[1440px] mx-auto">
+		<SearchBar placeholder="Search for movies" />
+
+		<section class="mb-8">
+			<h2 class="text-xl md:text-[32px] font-light tracking-tight md:tracking-[-0.5px] mb-4 md:mb-6 text-pure-white">Movies</h2>
+			<div class="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-y-6 md:gap-x-8 lg:grid-cols-4 lg:gap-y-8 lg:gap-x-10">
+				{movieItems.map((item, index) => (
+					<LazyMediaCard
+						title={item.title}
+						thumbnail={item.thumbnail.regular.medium}
+						year={item.year}
+						category={item.category as "Movie" | "TV Series"}
+						rating={item.rating}
+						isBookmarked={item.isBookmarked}
+						index={index}
+					/>
+				))}
+			</div>
+		</section>
+	</div>
+
+	<SearchScript category="Movie" />
+</Layout>
+

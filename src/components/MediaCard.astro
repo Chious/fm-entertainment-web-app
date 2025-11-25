@@ -1,0 +1,67 @@
+---
+import { Image } from "astro:assets";
+import BookmarkButton from "./BookmarkButton";
+import movieIcon from "@/assets/icon-category-movie.svg";
+import tvIcon from "@/assets/icon-category-tv.svg";
+import playIcon from "@/assets/icon-play.svg";
+
+interface Props {
+  title: string;
+  thumbnail: string;
+  year: number;
+  category: "Movie" | "TV Series";
+  rating: string;
+  isBookmarked: boolean;
+}
+
+const { title, thumbnail, year, category, rating, isBookmarked } = Astro.props;
+
+// Convert relative path to absolute import
+const thumbnailPath = thumbnail.replace("./assets/", "@/assets/");
+const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/thumbnails/**/*.jpg', { eager: true });
+const imagePath = thumbnail.replace("./assets/", "/src/assets/");
+const imageModule = images[imagePath];
+---
+
+<div class="relative cursor-pointer group">
+  <div class="relative rounded-lg overflow-hidden mb-2">
+    {imageModule && (
+      <Image 
+        src={imageModule.default}
+        alt={title}
+        class="w-full h-auto block transition-transform duration-300 ease-in-out group-hover:scale-105"
+        loading="lazy"
+      />
+    )}
+    
+    <div class="absolute top-2 right-2 md:top-4 md:right-4 z-2">
+      <BookmarkButton client:load isBookmarked={isBookmarked} />
+    </div>
+
+    <div class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <button class="flex items-center gap-4 py-2 px-6 bg-white/25 hover:bg-white/35 border-none rounded-[28px] text-pure-white font-medium text-lg cursor-pointer transition-all" aria-label={`Play ${title}`}>
+        <Image src={playIcon} alt="Play" class="w-[30px] h-[30px]" />
+        <span>Play</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <div class="flex items-center gap-2 text-[11px] md:text-[13px] font-light text-pure-white opacity-75">
+      <span>{year}</span>
+      <span class="text-[8px]">•</span>
+      <span class="flex items-center gap-1">
+        <Image 
+          src={category === "Movie" ? movieIcon : tvIcon} 
+          alt={category}
+          class="w-3 h-3 md:w-3.5 md:h-3.5"
+        />
+        {category}
+      </span>
+      <span class="text-[8px]">•</span>
+      <span>{rating}</span>
+    </div>
+    <h3 class="text-sm md:text-lg lg:text-2xl font-medium text-pure-white m-0">{title}</h3>
+  </div>
+</div>
+

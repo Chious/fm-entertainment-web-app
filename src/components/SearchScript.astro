@@ -1,0 +1,107 @@
+---
+interface Props {
+  category?: "Movie" | "TV Series";
+  bookmarkedOnly?: boolean;
+}
+
+const { category, bookmarkedOnly = false } = Astro.props;
+---
+
+<script define:vars={{ category, bookmarkedOnly }}>
+  function initSearch() {
+    const searchInput = document.getElementById('search-input');
+    
+    if (!searchInput) return;
+
+    let debounceTimer;
+    
+    // Get the original section titles
+    const sections = document.querySelectorAll('section');
+    const originalTitles = new Map();
+    sections.forEach(section => {
+      const title = section.querySelector('h2');
+      if (title) {
+        originalTitles.set(section, title.textContent);
+      }
+    });
+    
+    // Remove old event listeners by cloning and replacing the input
+    const newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+    
+    newSearchInput.addEventListener('input', (e) => {
+      const target = e.target;
+      const searchTerm = target.value.toLowerCase().trim();
+      
+      clearTimeout(debounceTimer);
+      
+      debounceTimer = setTimeout(() => {
+        // Get all cards (both media-card and lazy-load classes)
+        const mediaCards = document.querySelectorAll('.media-card, .lazy-load');
+        const trendingCards = document.querySelectorAll('.trending-card');
+        
+        // Get sections
+        const trendingSection = document.querySelector('.trending-section');
+        const allSections = document.querySelectorAll('section');
+        
+        let visibleCount = 0;
+        
+        if (searchTerm === '') {
+          // Show all cards when search is empty
+          mediaCards.forEach(card => {
+            card.style.display = '';
+          });
+          trendingCards.forEach(card => {
+            card.style.display = '';
+          });
+          
+          // Show trending section on home page
+          if (trendingSection) trendingSection.style.display = '';
+          
+          // Restore original section titles
+          sections.forEach(section => {
+            const title = section.querySelector('h2');
+            const originalTitle = originalTitles.get(section);
+            if (title && originalTitle) {
+              title.textContent = originalTitle;
+            }
+          });
+        } else {
+          // Hide trending section when searching
+          if (trendingSection) trendingSection.style.display = 'none';
+          
+          // Filter media cards
+          mediaCards.forEach(card => {
+            const title = card.querySelector('.text-sm, .text-[15px]')?.textContent?.toLowerCase() || '';
+            
+            if (title.includes(searchTerm)) {
+              card.style.display = '';
+              visibleCount++;
+            } else {
+              card.style.display = 'none';
+            }
+          });
+          
+          // Update section titles with search results
+          allSections.forEach(section => {
+            if (!section.classList.contains('trending-section')) {
+              const title = section.querySelector('h2');
+              if (title) {
+                const categoryText = category ? ` ${category === "Movie" ? "movies" : "TV series"}` : " results";
+                title.textContent = `Found ${visibleCount}${categoryText} for '${searchTerm}'`;
+              }
+            }
+          });
+        }
+      }, 300);
+    });
+  }
+  
+  // Run on initial load
+  document.addEventListener('DOMContentLoaded', initSearch);
+  
+  // Run after view transitions
+  document.addEventListener('astro:page-load', initSearch);
+</script>
+
+
