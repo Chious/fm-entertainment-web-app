@@ -4,6 +4,7 @@ export interface MediaItem {
   thumbnail: {
     trending?: {
       small: string;
+      medium: string;
       large: string;
     };
     regular: {

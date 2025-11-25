@@ -127,7 +127,9 @@ const { category, bookmarkedOnly = false } = Astro.props;
                     <div class="relative cursor-pointer group">
                       <div class="relative rounded-lg overflow-hidden mb-2">
                         <img
-                          src="${item.thumbnail.regular.medium}"
+                          src="${item.thumbnail.regular.small}"
+                          srcset="${item.thumbnail.regular.small} 185w, ${item.thumbnail.regular.medium} 342w, ${item.thumbnail.regular.large} 500w"
+                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                           alt="${item.title}"
                           class="w-full h-auto block transition-transform duration-300 ease-in-out group-hover:scale-105"
                           loading="lazy"

@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar.astro";
 import "@/styles/global.css";
 import '@fontsource-variable/outfit';
 import ClientRouter from "astro/components/ClientRouter.astro";
+import SpeedInsights from "@vercel/speed-insights/astro"
 
 interface Props {
 	title?: string;
@@ -28,5 +29,6 @@ const { title = "Entertainment Web App" } = Astro.props;
 				<slot />
 			</main>
 		</div>
+		<SpeedInsights/>
 	</body>
 </html>

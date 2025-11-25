@@ -7,7 +7,11 @@ import playIcon from "@/assets/icon-play.svg";
 
 interface Props {
   title: string;
-  thumbnail: string;
+  thumbnail: string | {
+    small: string;
+    medium: string;
+    large: string;
+  };
   year: number;
   category: "Movie" | "TV Series";
   rating: string;
@@ -17,14 +21,20 @@ interface Props {
 
 const { title, thumbnail, year, category, rating, isBookmarked, index } = Astro.props;
 
+// Handle both string and object thumbnail formats
+const thumbnailUrl = typeof thumbnail === 'string' ? thumbnail : thumbnail.small;
+const thumbnailSrcset = typeof thumbnail === 'object' 
+  ? `${thumbnail.small} 185w, ${thumbnail.medium} 342w, ${thumbnail.large} 500w`
+  : undefined;
+
 // Check if thumbnail is a remote URL or local path
-const isRemoteUrl = thumbnail.startsWith('http://') || thumbnail.startsWith('https://');
+const isRemoteUrl = thumbnailUrl.startsWith('http://') || thumbnailUrl.startsWith('https://');
 
 // For local images
 let imageModule;
 if (!isRemoteUrl) {
   const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/thumbnails/**/*.jpg', { eager: true });
-  const imagePath = thumbnail.replace("./assets/", "/src/assets/");
+  const imagePath = thumbnailUrl.replace("./assets/", "/src/assets/");
   imageModule = images[imagePath];
 }
 ---
@@ -33,7 +43,9 @@ if (!isRemoteUrl) {
   <div class="relative rounded-lg overflow-hidden mb-2">
     {isRemoteUrl ? (
       <img 
-        src={thumbnail}
+        src={thumbnailUrl}
+        srcset={thumbnailSrcset}
+        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
         alt={title}
         class="w-full h-auto block transition-transform duration-300 ease-in-out group-hover:scale-105"
         loading="lazy"

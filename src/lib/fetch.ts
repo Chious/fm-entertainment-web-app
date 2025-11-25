@@ -187,6 +187,14 @@ export const convertMovieToMediaItem = (
   );
 
   // Get backdrop URLs for trending
+  const backdropSmall = getTMDBImageUrl(
+    movie.backdrop_path,
+    TMDB_IMAGE_SIZES.backdrop.small
+  );
+  const backdropMedium = getTMDBImageUrl(
+    movie.backdrop_path,
+    TMDB_IMAGE_SIZES.backdrop.medium
+  );
   const backdropLarge = getTMDBImageUrl(
     movie.backdrop_path,
     TMDB_IMAGE_SIZES.backdrop.large
@@ -232,7 +240,8 @@ export const convertMovieToMediaItem = (
     title: movie.title,
     thumbnail: {
       trending: {
-        small: posterMedium,
+        small: backdropSmall || posterMedium,
+        medium: backdropMedium || posterLarge,
         large: backdropLarge || posterLarge,
       },
       regular: {
@@ -279,6 +288,14 @@ export const convertTVShowToMediaItem = (
   );
 
   // Get backdrop URLs for trending
+  const backdropSmall = getTMDBImageUrl(
+    tvShow.backdrop_path,
+    TMDB_IMAGE_SIZES.backdrop.small
+  );
+  const backdropMedium = getTMDBImageUrl(
+    tvShow.backdrop_path,
+    TMDB_IMAGE_SIZES.backdrop.medium
+  );
   const backdropLarge = getTMDBImageUrl(
     tvShow.backdrop_path,
     TMDB_IMAGE_SIZES.backdrop.large
@@ -322,7 +339,8 @@ export const convertTVShowToMediaItem = (
     title: tvShow.name,
     thumbnail: {
       trending: {
-        small: posterMedium,
+        small: backdropSmall || posterMedium,
+        medium: backdropMedium || posterLarge,
         large: backdropLarge || posterLarge,
       },
       regular: {

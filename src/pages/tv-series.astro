@@ -19,7 +19,7 @@ const tvSeriesItems = await fetchTVSeries();
 				{tvSeriesItems.map((item, index) => (
 					<LazyMediaCard
 						title={item.title}
-						thumbnail={item.thumbnail.regular.medium}
+						thumbnail={item.thumbnail.regular}
 						year={item.year}
 						category={item.category as "Movie" | "TV Series"}
 						rating={item.rating}
