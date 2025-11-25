@@ -33,6 +33,7 @@ const { items } = Astro.props;
       rating={item.rating}
       isBookmarked={item.isBookmarked}
       index={index}
+      loading={index < 4 ? "eager" : "lazy"}
     />
   ))}
 </div>

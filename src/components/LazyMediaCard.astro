@@ -17,55 +17,33 @@ interface Props {
   rating: string;
   isBookmarked: boolean;
   index: number;
+  loading?: "eager" | "lazy";
 }
 
-const { title, thumbnail, year, category, rating, isBookmarked, index } = Astro.props;
+const { title, thumbnail, year, category, rating, isBookmarked, index, loading = "lazy" } = Astro.props;
 
-// Handle both string and object thumbnail formats
-const thumbnailUrl = typeof thumbnail === 'string' ? thumbnail : thumbnail.small;
-const thumbnailSrcset = typeof thumbnail === 'object' 
-  ? `${thumbnail.small} 185w, ${thumbnail.medium} 342w, ${thumbnail.large} 500w`
-  : undefined;
-
-// Check if thumbnail is a remote URL or local path
-const isRemoteUrl = thumbnailUrl.startsWith('http://') || thumbnailUrl.startsWith('https://');
-
-// For local images
-let imageModule;
-if (!isRemoteUrl) {
-  const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/thumbnails/**/*.jpg', { eager: true });
-  const imagePath = thumbnailUrl.replace("./assets/", "/src/assets/");
-  imageModule = images[imagePath];
-}
+// Handle both string and object thumbnail formats - use medium size for optimal quality
+const thumbnailUrl = typeof thumbnail === 'string' ? thumbnail : thumbnail.medium;
 ---
 
 <div class="lazy-load relative cursor-pointer opacity-0 translate-y-5 transition-all duration-600 ease-in-out group" data-index={index}>
-  <div class="relative rounded-lg overflow-hidden mb-2">
-    {isRemoteUrl ? (
-      <img 
-        src={thumbnailUrl}
-        srcset={thumbnailSrcset}
-        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        alt={title}
-        class="w-full h-auto block transition-transform duration-300 ease-in-out group-hover:scale-105"
-        loading="lazy"
-      />
-    ) : imageModule && (
-      <Image 
-        src={imageModule.default}
-        alt={title}
-        class="w-full h-auto block transition-transform duration-300 ease-in-out group-hover:scale-105"
-        loading="lazy"
-      />
-    )}
+  <div class="relative rounded-lg overflow-hidden mb-2 image-container">
+    <Image 
+      src={thumbnailUrl}
+      alt={title}
+      class="w-full h-auto block transition-transform duration-300 ease-in-out group-hover:scale-105"
+      loading={loading}
+      inferSize={true}
+    />
+    <div class="image-skeleton w-full aspect-2/3 rounded-lg bg-semi-dark-blue animate-pulse" style="display: none; min-height: 300px;"></div>
     
     <div class="absolute top-2 right-2 md:top-4 md:right-4 z-2">
-      <BookmarkButton client:visible isBookmarked={isBookmarked} />
+      <BookmarkButton client:only="react" isBookmarked={isBookmarked} />
     </div>
 
     <div class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
       <button class="flex items-center gap-4 py-2 px-6 bg-white/25 hover:bg-white/35 border-none rounded-[28px] text-pure-white font-medium text-lg cursor-pointer transition-all" aria-label={`Play ${title}`}>
-        <Image src={playIcon} alt="Play" class="w-[30px] h-[30px]" />
+        <Image src={playIcon} alt="Play" class="w-[30px] h-[30px]" loading={loading}/>
         <span>Play</span>
       </button>
     </div>
@@ -127,10 +105,34 @@ if (!isRemoteUrl) {
     });
   }
   
+  function handleImageErrors() {
+    const images = document.querySelectorAll('.image-container img');
+    images.forEach((img: Element) => {
+      img.addEventListener('error', function(this: HTMLImageElement) {
+        const container = this.closest('.image-container');
+        if (container) {
+          container.classList.add('image-error');
+          this.style.display = 'none';
+        }
+      });
+    });
+  }
+  
   // Run on initial load
-  document.addEventListener('DOMContentLoaded', initLazyLoad);
+  document.addEventListener('DOMContentLoaded', () => {
+    initLazyLoad();
+    handleImageErrors();
+  });
   
   // Run after view transitions
-  document.addEventListener('astro:page-load', initLazyLoad);
+  document.addEventListener('astro:page-load', () => {
+    initLazyLoad();
+    handleImageErrors();
+  });
 </script>
 
+<style>
+  .image-container.image-error .image-skeleton {
+    display: block !important;
+  }
+</style>

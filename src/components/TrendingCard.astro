@@ -20,52 +20,29 @@ interface Props {
 
 const { title, thumbnail, year, category, rating, isBookmarked } = Astro.props;
 
-// Handle both string and object thumbnail formats
-const thumbnailUrl = typeof thumbnail === 'string' ? thumbnail : thumbnail.small;
-const thumbnailSrcset = typeof thumbnail === 'object' 
-  ? `${thumbnail.small} 300w, ${thumbnail.medium} 780w, ${thumbnail.large} 1280w`
-  : undefined;
-
-// Check if thumbnail is a remote URL or local path
-const isRemoteUrl = thumbnailUrl.startsWith('http://') || thumbnailUrl.startsWith('https://');
-
-// For local images
-let imageModule;
-if (!isRemoteUrl) {
-  const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/thumbnails/**/*.jpg', { eager: true });
-  const imagePath = thumbnailUrl.replace("./assets/", "/src/assets/");
-  imageModule = images[imagePath];
-}
+// Handle both string and object thumbnail formats - use large size for backdrop images
+const thumbnailUrl = typeof thumbnail === 'string' ? thumbnail : thumbnail.large;
 ---
 
 <div class="relative cursor-pointer flex-none w-60 md:w-[470px] group">
-  <div class="relative rounded-lg overflow-hidden h-[140px] md:h-[230px]">
-    {isRemoteUrl ? (
-      <img 
-        src={thumbnailUrl}
-        srcset={thumbnailSrcset}
-        sizes="(max-width: 768px) 240px, 470px"
-        alt={title}
-        class="w-full h-full object-cover block transition-transform duration-300 ease-in-out group-hover:scale-105"
-        loading="eager"
-        fetchpriority="high"
-      />
-    ) : imageModule && (
-      <Image 
-        src={imageModule.default}
-        alt={title}
-        class="w-full h-full object-cover block transition-transform duration-300 ease-in-out group-hover:scale-105"
-        loading="lazy"
-      />
-    )}
+  <div class="relative rounded-lg overflow-hidden h-[140px] md:h-[230px] image-container">
+    <Image 
+      src={thumbnailUrl}
+      alt={title}
+      class="w-full h-full object-cover block transition-transform duration-300 ease-in-out group-hover:scale-105"
+      loading="eager"
+      fetchpriority="high"
+      inferSize={true}
+    />
+    <div class="image-skeleton w-full h-full rounded-lg bg-semi-dark-blue animate-pulse" style="display: none; min-height: 400px;"></div>
     
     <div class="absolute top-2 right-2 md:top-4 md:right-4 z-2">
-      <BookmarkButton client:load isBookmarked={isBookmarked}/>
+      <BookmarkButton client:only="react" isBookmarked={isBookmarked}/>
     </div>
 
     <div class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
       <button class="flex items-center gap-4 py-2 px-6 bg-white/25 hover:bg-white/35 border-none rounded-[28px] text-pure-white font-medium text-lg cursor-pointer transition-all" aria-label={`Play ${title}`}>
-        <Image src={playIcon} alt="Play" class="w-[30px] h-[30px]" />
+        <Image src={playIcon} alt="Play" class="w-[30px] h-[30px]" loading="eager"/>
         <span>Play</span>
       </button>
     </div>
@@ -91,3 +68,26 @@ if (!isRemoteUrl) {
   </div>
 </div>
 
+<script>
+  function handleImageErrors() {
+    const images = document.querySelectorAll('.image-container img');
+    images.forEach((img: Element) => {
+      img.addEventListener('error', function(this: HTMLImageElement) {
+        const container = this.closest('.image-container');
+        if (container) {
+          container.classList.add('image-error');
+          this.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', handleImageErrors);
+  document.addEventListener('astro:page-load', handleImageErrors);
+</script>
+
+<style>
+  .image-container.image-error .image-skeleton {
+    display: block !important;
+  }
+</style>

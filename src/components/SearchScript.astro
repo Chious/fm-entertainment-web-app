@@ -63,7 +63,7 @@ const { category, bookmarkedOnly = false } = Astro.props;
           
           // Remove loading/error states
           if (grid) {
-            grid.classList.remove('opacity-50');
+            grid.classList.remove('opacity-50', 'search-results');
             const loadingMsg = recommendedSection.querySelector('.search-loading');
             const errorMsg = recommendedSection.querySelector('.search-error');
             if (loadingMsg) loadingMsg.remove();
@@ -119,21 +119,22 @@ const { category, bookmarkedOnly = false } = Astro.props;
             
             // Render results
             if (grid) {
+              grid.classList.add('search-results');
               if (results.length === 0) {
                 grid.innerHTML = '<div class="col-span-full text-center py-8 text-greyish-blue">No results found</div>';
               } else {
                 grid.innerHTML = results.map((item, index) => `
                   <div class="lazy-load" data-index="${index}">
                     <div class="relative cursor-pointer group">
-                      <div class="relative rounded-lg overflow-hidden mb-2">
+                      <div class="relative rounded-lg overflow-hidden mb-2 image-container">
                         <img
-                          src="${item.thumbnail.regular.small}"
-                          srcset="${item.thumbnail.regular.small} 185w, ${item.thumbnail.regular.medium} 342w, ${item.thumbnail.regular.large} 500w"
-                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          src="${item.thumbnail.regular.medium}"
                           alt="${item.title}"
-                          class="w-full h-auto block transition-transform duration-300 ease-in-out group-hover:scale-105"
+                          class="w-full h-auto block transition-transform duration-300 ease-in-out group-hover:scale-105 search-image"
                           loading="lazy"
+                          onerror="this.style.display='none'; this.parentElement.classList.add('image-error');"
                         />
+                        <div class="image-skeleton w-full aspect-2/3 rounded-lg bg-semi-dark-blue animate-pulse" style="display: none; min-height: 300px;"></div>
                         <div class="absolute top-2 right-2 z-2">
                           <button
                             class="bookmark-button w-8 h-8 rounded-full bg-dark-blue/50 hover:bg-pure-white flex items-center justify-center transition-all duration-200 group/bookmark"
@@ -207,5 +208,11 @@ const { category, bookmarkedOnly = false } = Astro.props;
   // Run after view transitions
   document.addEventListener('astro:page-load', initSearch);
 </script>
+
+<style is:global>
+  .search-results .image-container.image-error .image-skeleton {
+    display: block !important;
+  }
+</style>
 
 

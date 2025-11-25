@@ -5,6 +5,9 @@ import SearchScript from '@/components/SearchScript.astro';
 import LazyMediaCard from '@/components/LazyMediaCard.astro';
 import { fetchMovies } from '@/lib/media';
 
+// Set cache header
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+
 // Fetch only movies from OMDB API
 const movieItems = await fetchMovies();
 ---
@@ -25,6 +28,7 @@ const movieItems = await fetchMovies();
 						rating={item.rating}
 						isBookmarked={item.isBookmarked}
 						index={index}
+						loading={index < 5 ? "eager" : "lazy"}
 					/>
 				))}
 			</div>

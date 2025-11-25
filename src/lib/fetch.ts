@@ -6,6 +6,7 @@ import type {
   TMDBTVShowDetail,
   MediaItem,
 } from "./types";
+import { cache } from "./cache";
 
 const apiKey = import.meta.env.TMDB_APIKEY;
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -108,6 +109,13 @@ export const getMovieDetail = async (
   id: number,
   options?: TMDBDetailOptions
 ): Promise<TMDBMovieDetail> => {
+  // Check cache first
+  const cacheKey = `movie_detail_${id}`;
+  const cached = cache.get<TMDBMovieDetail>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   if (!apiKey) {
     console.error("TMDB API Key is missing!");
     throw new Error("API Key is required");
@@ -130,7 +138,12 @@ export const getMovieDetail = async (
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
-  return response.json();
+  const data = await response.json();
+
+  // Cache for 1 hour
+  cache.set(cacheKey, data, 60 * 60 * 1000);
+
+  return data;
 };
 
 /**
@@ -140,6 +153,13 @@ export const getTVShowDetail = async (
   id: number,
   options?: TMDBDetailOptions
 ): Promise<TMDBTVShowDetail> => {
+  // Check cache first
+  const cacheKey = `tv_detail_${id}`;
+  const cached = cache.get<TMDBTVShowDetail>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   if (!apiKey) {
     console.error("TMDB API Key is missing!");
     throw new Error("API Key is required");
@@ -162,7 +182,12 @@ export const getTVShowDetail = async (
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
-  return response.json();
+  const data = await response.json();
+
+  // Cache for 1 hour
+  cache.set(cacheKey, data, 60 * 60 * 1000);
+
+  return data;
 };
 
 /**
@@ -373,6 +398,13 @@ export const getTrending = async (
   mediaType: "movie" | "tv" | "all" = "all",
   timeWindow: "day" | "week" = "week"
 ): Promise<TMDBSearchResponse> => {
+  // Check cache first
+  const cacheKey = `trending_${mediaType}_${timeWindow}`;
+  const cached = cache.get<TMDBSearchResponse>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   if (!apiKey) {
     console.error("TMDB API Key is missing!");
     throw new Error("API Key is required");
@@ -390,7 +422,12 @@ export const getTrending = async (
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
-  return response.json();
+  const data = await response.json();
+
+  // Cache for 20 minutes (trending changes frequently)
+  cache.set(cacheKey, data, 20 * 60 * 1000);
+
+  return data;
 };
 
 /**
@@ -399,6 +436,13 @@ export const getTrending = async (
 export const getPopularMovies = async (
   page: number = 1
 ): Promise<TMDBSearchResponse> => {
+  // Check cache first
+  const cacheKey = `popular_movies_${page}`;
+  const cached = cache.get<TMDBSearchResponse>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   if (!apiKey) {
     console.error("TMDB API Key is missing!");
     throw new Error("API Key is required");
@@ -417,7 +461,12 @@ export const getPopularMovies = async (
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
-  return response.json();
+  const data = await response.json();
+
+  // Cache for 30 minutes
+  cache.set(cacheKey, data, 30 * 60 * 1000);
+
+  return data;
 };
 
 /**
@@ -426,6 +475,13 @@ export const getPopularMovies = async (
 export const getPopularTVShows = async (
   page: number = 1
 ): Promise<TMDBSearchResponse> => {
+  // Check cache first
+  const cacheKey = `popular_tv_${page}`;
+  const cached = cache.get<TMDBSearchResponse>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   if (!apiKey) {
     console.error("TMDB API Key is missing!");
     throw new Error("API Key is required");
@@ -442,7 +498,12 @@ export const getPopularTVShows = async (
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
-  return response.json();
+  const data = await response.json();
+
+  // Cache for 30 minutes
+  cache.set(cacheKey, data, 30 * 60 * 1000);
+
+  return data;
 };
 
 /**
