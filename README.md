@@ -67,6 +67,8 @@ When it comes to hydration and asset optimization, Astro's developer experience 
 This IMG tag is below the fold and could be lazy-loaded to improve performance.
 ```
 
+![](./devtools-aduit.png)
+
 I addressed these by adding `loading`, `format`, and `fetchPriority` attributes in components:
 
 ```jsx
@@ -83,7 +85,7 @@ Data fetching in Astro is also more intuitive:
 
 ```astro
 ---
-// Server-side code only triggers once on client side
+// Server-side code only triggers once while first rendering
 const data = fetch("example.api.domain.com")
 ---
 
@@ -189,7 +191,7 @@ Astro hydrates HTML by default:
 **Authentication**
 
 - [Better Auth Documentation](https://www.better-auth.com/docs) - Authentication library for modern apps
-- [Better Auth with Astro](https://www.better-auth.com/docs/guides/astro) - Astro integration guide
+- [Better Auth with Astro](https://www.better-auth.com/docs/integrations/astro) - Astro integration guide
 
 **UI & Styling**
 
@@ -201,7 +203,7 @@ Astro hydrates HTML by default:
 **State Management**
 
 - [NanoStores](https://github.com/nanostores/nanostores) - Lightweight state manager
-- [NanoStores React Integration](https://github.com/nanostores/react) - React bindings for NanoStores
+- [Share state between islands](https://docs.astro.build/en/recipes/sharing-state-islands/)
 
 **API & Data**
 
