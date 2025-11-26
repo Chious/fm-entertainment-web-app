@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "../../db";
+import { db, user, session, account, verification } from "../../db";
 
 // Get base URL from environment or default to localhost
 // Note: import.meta.env.SITE comes from astro.config.mjs
@@ -17,6 +17,12 @@ export const auth = betterAuth({
   baseURL: BASE_URL,
   database: drizzleAdapter(db, {
     provider: "sqlite",
+    schema: {
+      user,
+      session,
+      account,
+      verification,
+    },
   }),
   emailAndPassword: {
     enabled: true,

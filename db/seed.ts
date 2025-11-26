@@ -28,8 +28,10 @@ export async function seed() {
     } else {
       // Create user using better-auth's internal API
       // Use the auth instance's handler to process the sign-up request
+      // For production, use the actual BASE_URL, for local use localhost
       const baseURL =
         process.env.PUBLIC_BASE_URL ||
+        process.env.BASE_URL ||
         (typeof import.meta !== "undefined" &&
           import.meta.env?.PUBLIC_BASE_URL) ||
         "http://localhost:4321";
@@ -81,41 +83,62 @@ export async function seed() {
     }
   }
 
-  // 3. Seed with default bookmarks
-  await db.insert(bookmark).values([
-    {
-      userId: userId,
-      title: "Beyond Earth",
-      year: 2019,
-      category: "Movie",
-      rating: "PG",
-      thumbnail: "/thumbnails/beyond-earth/regular/large.jpg",
-    },
-    {
-      userId: userId,
-      title: "Bottom Gear",
-      year: 2021,
-      category: "TV Series",
-      rating: "PG",
-      thumbnail: "/thumbnails/bottom-gear/regular/large.jpg",
-    },
-    {
-      userId: userId,
-      title: "Undiscovered Cities",
-      year: 2019,
-      category: "TV Series",
-      rating: "E",
-      thumbnail: "/thumbnails/undiscovered-cities/regular/large.jpg",
-    },
-  ]);
+  // 3. Seed with default bookmarks (only if they don't exist)
+  const existingBookmarks = await db
+    .select()
+    .from(bookmark)
+    .where(eq(bookmark.userId, userId));
 
-  // 4. Seed with default user preferences
-  await db.insert(userPreferences).values({
-    userId: userId,
-    language: "en",
-    showAdultContent: false,
-    theme: "dark",
-  });
+  if (existingBookmarks.length === 0) {
+    await db.insert(bookmark).values([
+      {
+        userId: userId,
+        title: "Beyond Earth",
+        year: 2019,
+        category: "Movie",
+        rating: "PG",
+        thumbnail: "/thumbnails/beyond-earth/regular/large.jpg",
+      },
+      {
+        userId: userId,
+        title: "Bottom Gear",
+        year: 2021,
+        category: "TV Series",
+        rating: "PG",
+        thumbnail: "/thumbnails/bottom-gear/regular/large.jpg",
+      },
+      {
+        userId: userId,
+        title: "Undiscovered Cities",
+        year: 2019,
+        category: "TV Series",
+        rating: "E",
+        thumbnail: "/thumbnails/undiscovered-cities/regular/large.jpg",
+      },
+    ]);
+    console.log("✅ Bookmarks seeded");
+  } else {
+    console.log("⚠️  Bookmarks already exist, skipping...");
+  }
+
+  // 4. Seed with default user preferences (only if they don't exist)
+  const existingPreferences = await db
+    .select()
+    .from(userPreferences)
+    .where(eq(userPreferences.userId, userId))
+    .limit(1);
+
+  if (existingPreferences.length === 0) {
+    await db.insert(userPreferences).values({
+      userId: userId,
+      language: "en",
+      showAdultContent: false,
+      theme: "dark",
+    });
+    console.log("✅ Preferences seeded");
+  } else {
+    console.log("⚠️  Preferences already exist, skipping...");
+  }
 
   console.log("✅ Database seeded successfully with better-auth!");
   console.log("📧 Demo account: demo@entertainment.app");
