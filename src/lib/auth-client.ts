@@ -8,11 +8,7 @@ const getBaseURL = () => {
   }
 
   // During SSR, use environment variables
-  return (
-    import.meta.env.BASE_URL ||
-    import.meta.env.PUBLIC_BASE_URL ||
-    "http://localhost:4321"
-  );
+  return import.meta.env.PUBLIC_BASE_URL || "http://localhost:4321";
 };
 
 export const authClient = createAuthClient({

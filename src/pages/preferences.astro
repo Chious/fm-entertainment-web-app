@@ -1,0 +1,33 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { requireAuth } from "@/lib/auth-utils";
+import { getUserPreferences } from "@/lib/preferences";
+import { PreferencesForm } from "@/components/PreferencesForm";
+
+// Require authentication - redirect to login if not authenticated
+const user = await requireAuth(Astro);
+
+// If requireAuth returned a redirect, return it
+if (user instanceof Response) {
+  return user;
+}
+
+// Get user preferences
+const preferences = await getUserPreferences(user.id);
+---
+
+<Layout title="Preferences - Entertainment Web App">
+  <div class="w-full max-w-[1440px] mx-auto">
+    <div class="mb-8">
+      <h1 class="text-[32px] md:text-[40px] font-light tracking-tight md:tracking-[-0.5px] text-pure-white mb-2">
+        Preferences
+      </h1>
+      <p class="text-greyish-blue text-base md:text-lg font-light">
+        Customize your viewing experience
+      </p>
+    </div>
+
+    <PreferencesForm client:load initialPreferences={preferences} />
+  </div>
+</Layout>
+

@@ -4,10 +4,17 @@ import SearchBar from '@/components/SearchBar.astro';
 import SearchScript from '@/components/SearchScript.astro';
 import TrendingCard from '@/components/TrendingCard.astro';
 import LazyMediaCard from '@/components/LazyMediaCard.astro';
+import { LoginHint } from '@/components/LoginHint';
+import { UserIntro } from '@/components/UserIntro';
 import { fetchTrendingMedia, fetchAllMedia } from '@/lib/media';
+import { getCurrentUser } from '@/lib/auth-utils';
 
 // Set cache header
 Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+
+// Check if user is authenticated
+const user = await getCurrentUser(Astro);
+const isAuthenticated = !!user;
 
 // Fetch trending items (top 8 from TMDB's trending API)
 const trendingItems = await fetchTrendingMedia(8);
@@ -18,9 +25,11 @@ const recommendedItems = await fetchAllMedia(12, 12);
 
 <Layout title="Home - Entertainment Web App">
 	<div class="w-full max-w-[1440px] mx-auto">
-		<SearchBar />
+		{isAuthenticated && <SearchBar />}
+		<LoginHint client:only="react" />
+		<UserIntro client:only="react" />
 
-		<section class="mb-6 md:mb-10 trending-section">
+		<section class="mb-6 md:mb-10 trending-section" data-intro="trending">
 			<h2 class="text-xl md:text-[32px] font-light tracking-tight md:tracking-[-0.5px] mb-4 md:mb-6 text-pure-white">Trending</h2>
 			<div class="flex gap-4 md:gap-10 overflow-x-auto overflow-y-hidden pb-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 				{trendingItems.map((item) => (
@@ -55,5 +64,5 @@ const recommendedItems = await fetchAllMedia(12, 12);
 		</section>
 	</div>
 
-	<SearchScript category={undefined} />
+	{isAuthenticated && <SearchScript category={undefined} />}
 </Layout>

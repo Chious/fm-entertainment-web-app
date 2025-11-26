@@ -53,13 +53,19 @@ export function UserMenu() {
       </Avatar>
 
       {/* Dropdown menu */}
-      <div className="absolute right-0 mt-2 w-48 bg-semi-dark-blue rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+      <div className="absolute left-auto right-0 md:left-full md:right-auto mt-2 md:ml-2 w-48 max-w-[calc(100vw-2rem)] bg-semi-dark-blue lg:bottom-0 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
         <div className="p-4 border-b border-greyish-blue">
           <p className="text-pure-white font-medium truncate">
             {user.name || "User"}
           </p>
           <p className="text-greyish-blue text-sm truncate">{user.email}</p>
         </div>
+        <a
+          href="/preferences"
+          className="block w-full text-left px-4 py-2 text-pure-white hover:bg-dark-blue transition-colors"
+        >
+          Preferences
+        </a>
         <button
           onClick={handleLogout}
           disabled={isLoggingOut}

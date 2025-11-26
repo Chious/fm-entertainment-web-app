@@ -4,9 +4,14 @@ import SearchBar from '@/components/SearchBar.astro';
 import SearchScript from '@/components/SearchScript.astro';
 import LazyMediaCard from '@/components/LazyMediaCard.astro';
 import { fetchMovies } from '@/lib/media';
+import { getCurrentUser } from '@/lib/auth-utils';
 
 // Set cache header
 Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+
+// Check if user is authenticated
+const user = await getCurrentUser(Astro);
+const isAuthenticated = !!user;
 
 // Fetch only movies from OMDB API
 const movieItems = await fetchMovies();
@@ -14,7 +19,7 @@ const movieItems = await fetchMovies();
 
 <Layout title="Movies - Entertainment Web App">
 	<div class="w-full max-w-[1440px] mx-auto">
-		<SearchBar placeholder="Search for movies" />
+		{isAuthenticated && <SearchBar placeholder="Search for movies" />}
 
 		<section class="mb-8">
 			<h2 class="text-xl md:text-[32px] font-light tracking-tight md:tracking-[-0.5px] mb-4 md:mb-6 text-pure-white">Movies</h2>
@@ -35,6 +40,6 @@ const movieItems = await fetchMovies();
 		</section>
 	</div>
 
-	<SearchScript category="Movie" />
+	{isAuthenticated && <SearchScript category="Movie" />}
 </Layout>
 

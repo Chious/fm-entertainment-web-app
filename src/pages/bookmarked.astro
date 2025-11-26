@@ -4,9 +4,16 @@ import SearchBar from '@/components/SearchBar.astro';
 import SearchScript from '@/components/SearchScript.astro';
 import LazyMediaCard from '@/components/LazyMediaCard.astro';
 import { fetchBookmarkedMedia, filterMedia } from '@/lib/media';
+import { requireAuth } from '@/lib/auth-utils';
 
 // Set cache header
 Astro.response.headers.set('Cache-Control', 'public, max-age=1800, stale-while-revalidate=3600');
+
+// Require authentication for bookmarked page
+const user = await requireAuth(Astro);
+if (user instanceof Response) {
+  return user;
+}
 
 // Fetch bookmarked items from OMDB API
 const bookmarkedItems = await fetchBookmarkedMedia();

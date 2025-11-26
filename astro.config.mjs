@@ -5,14 +5,9 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@astrojs/react";
 import vercel from "@astrojs/vercel";
 
-import db from "@astrojs/db";
-
 // https://astro.build/config
 export default defineConfig({
-  site:
-    process.env.BASE_URL ||
-    process.env.PUBLIC_BASE_URL ||
-    "http://localhost:4321",
+  site: process.env.PUBLIC_BASE_URL || "http://localhost:4321",
   output: "server",
   prefetch: true,
 
@@ -34,6 +29,6 @@ export default defineConfig({
     },
   },
 
-  integrations: [react(), db()],
+  integrations: [react()],
   adapter: vercel(),
 });

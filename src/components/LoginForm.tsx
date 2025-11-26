@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { z } from "zod";
+import { toast } from "sonner";
 
 // Zod validation schema
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
 });
-
-type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -37,19 +36,29 @@ export function LoginForm() {
     }
 
     try {
-      await authClient.signIn.email({
+      const result = await authClient.signIn.email({
         email: validation.data.email,
         password: validation.data.password,
       });
 
-      // Redirect to home page on success
-      window.location.href = "/";
+      // Check if login was successful
+      // Better-auth returns a Data object with data.user on success
+      if (result && "data" in result && result.data?.user) {
+        // Login successful - redirect to home page
+        window.location.href = "/";
+      } else {
+        // Login failed but no error was thrown
+        toast.error("Failed to login. Please check your credentials.");
+        setLoading(false);
+      }
     } catch (err: any) {
-      setErrors({
-        general:
-          err.message || "Failed to login. Please check your credentials.",
-      });
-    } finally {
+      // Handle error from better-auth
+      const errorMessage =
+        err.message ||
+        err.data?.message ||
+        "Failed to login. Please check your credentials.";
+
+      toast.error(errorMessage);
       setLoading(false);
     }
   };
@@ -62,12 +71,6 @@ export function LoginForm() {
       <h2 className="text-xl md:text-[32px] font-light tracking-tight md:tracking-[-0.5px] mb-4 md:mb-6 text-pure-white">
         Login
       </h2>
-
-      {errors.general && (
-        <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-2 rounded">
-          {errors.general}
-        </div>
-      )}
 
       <div>
         <input

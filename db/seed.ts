@@ -1,37 +1,89 @@
-import { db, User, Bookmark, UserPreferences, Account } from "astro:db";
-import { hashPassword } from "./utils";
+import { db, bookmark, userPreferences, user } from "./index";
+import { auth } from "../src/lib/auth";
+import { eq } from "drizzle-orm";
 
-// https://astro.build/db/seed
-export default async function seed() {
-  // 1. Seed with default user account
-  const userId = "demo-user-123";
-  const hashedPassword = await hashPassword("demo1234");
+// Seed function for Drizzle ORM
+export async function seed() {
+  console.log("🌱 Seeding database...");
 
-  await db.insert(User).values({
-    id: userId,
-    email: "demo@entertainment.app",
-    name: "Demo User",
-    emailVerified: true,
-    image: null,
-  });
+  // 1. Create user account using better-auth API
+  // This ensures the account is created in the exact format better-auth expects
+  const email = "demo@entertainment.app";
+  const password = "demo1234";
+  const name = "Demo User";
 
-  // 2. Create email/password account for the user
-  await db.insert(Account).values({
-    id: "account-demo-123",
-    accountId: "demo@entertainment.app",
-    providerId: "credential",
-    userId: userId,
-    password: hashedPassword,
-    accessToken: null,
-    refreshToken: null,
-    idToken: null,
-    expiresAt: null,
-  });
+  let userId: string;
+
+  try {
+    // Check if user already exists by querying the database directly
+    const existingUsers = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, email))
+      .limit(1);
+
+    if (existingUsers.length > 0) {
+      console.log("⚠️  User already exists, skipping user creation...");
+      userId = existingUsers[0].id;
+    } else {
+      // Create user using better-auth's internal API
+      // Use the auth instance's handler to process the sign-up request
+      const baseURL =
+        process.env.PUBLIC_BASE_URL ||
+        (typeof import.meta !== "undefined" &&
+          import.meta.env?.PUBLIC_BASE_URL) ||
+        "http://localhost:4321";
+
+      // Create a mock request object for the auth handler
+      const request = new Request(`${baseURL}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+        }),
+      });
+
+      // Use the auth instance's handler to process the request
+      const response = await auth.handler(request);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create user: ${errorText}`);
+      }
+
+      const result = await response.json();
+
+      if (!result?.user?.id) {
+        throw new Error("Failed to create user: No user ID returned");
+      }
+
+      userId = result.user.id;
+      console.log("✅ User created successfully via better-auth API");
+    }
+  } catch (error: any) {
+    console.error("❌ Error creating user:", error.message);
+    // If creation fails, try to find existing user
+    const existingUsers = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, email))
+      .limit(1);
+
+    if (existingUsers.length > 0) {
+      userId = existingUsers[0].id;
+      console.log("⚠️  Using existing user");
+    } else {
+      throw error;
+    }
+  }
 
   // 3. Seed with default bookmarks
-  await db.insert(Bookmark).values([
+  await db.insert(bookmark).values([
     {
-      id: 1,
       userId: userId,
       title: "Beyond Earth",
       year: 2019,
@@ -40,7 +92,6 @@ export default async function seed() {
       thumbnail: "/thumbnails/beyond-earth/regular/large.jpg",
     },
     {
-      id: 2,
       userId: userId,
       title: "Bottom Gear",
       year: 2021,
@@ -49,7 +100,6 @@ export default async function seed() {
       thumbnail: "/thumbnails/bottom-gear/regular/large.jpg",
     },
     {
-      id: 3,
       userId: userId,
       title: "Undiscovered Cities",
       year: 2019,
@@ -60,8 +110,7 @@ export default async function seed() {
   ]);
 
   // 4. Seed with default user preferences
-  await db.insert(UserPreferences).values({
-    id: 1,
+  await db.insert(userPreferences).values({
     userId: userId,
     language: "en",
     showAdultContent: false,
@@ -71,4 +120,14 @@ export default async function seed() {
   console.log("✅ Database seeded successfully with better-auth!");
   console.log("📧 Demo account: demo@entertainment.app");
   console.log("🔑 Password: demo1234");
+}
+
+// Run seed if this file is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  seed()
+    .then(() => process.exit(0))
+    .catch((error) => {
+      console.error("❌ Seed failed:", error);
+      process.exit(1);
+    });
 }

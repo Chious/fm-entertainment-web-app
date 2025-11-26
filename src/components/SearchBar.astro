@@ -9,7 +9,7 @@ interface Props {
 const { placeholder = "Search for movies or TV series" } = Astro.props;
 ---
 
-<div class="flex items-center gap-4 mb-6">
+<div class="flex items-center gap-4 mb-6" data-intro="search">
   <Image src={searchIcon} alt="Search" class="w-6 h-6 md:w-8 md:h-8" loading="eager"/>
   <input 
     type="text" 

@@ -1,4 +1,5 @@
-import { db, Bookmark, eq, and } from "astro:db";
+import { db, bookmark } from "../../db/index";
+import { eq, and } from "drizzle-orm";
 
 export interface BookmarkData {
   id?: number;
@@ -15,14 +16,14 @@ export interface BookmarkData {
  * Get all bookmarks for a user
  */
 export async function getUserBookmarks(userId: string) {
-  return await db.select().from(Bookmark).where(eq(Bookmark.userId, userId));
+  return await db.select().from(bookmark).where(eq(bookmark.userId, userId));
 }
 
 /**
  * Add a bookmark for a user
  */
-export async function addBookmark(bookmark: BookmarkData) {
-  const result = await db.insert(Bookmark).values(bookmark).returning();
+export async function addBookmark(bookmarkData: BookmarkData) {
+  const result = await db.insert(bookmark).values(bookmarkData).returning();
   return result[0];
 }
 
@@ -31,8 +32,8 @@ export async function addBookmark(bookmark: BookmarkData) {
  */
 export async function removeBookmark(bookmarkId: number, userId: string) {
   await db
-    .delete(Bookmark)
-    .where(and(eq(Bookmark.id, bookmarkId), eq(Bookmark.userId, userId)));
+    .delete(bookmark)
+    .where(and(eq(bookmark.id, bookmarkId), eq(bookmark.userId, userId)));
 }
 
 /**
@@ -44,8 +45,8 @@ export async function isBookmarked(
 ): Promise<boolean> {
   const bookmarks = await db
     .select()
-    .from(Bookmark)
-    .where(and(eq(Bookmark.userId, userId), eq(Bookmark.title, title)));
+    .from(bookmark)
+    .where(and(eq(bookmark.userId, userId), eq(bookmark.title, title)));
 
   return bookmarks.length > 0;
 }
@@ -53,31 +54,31 @@ export async function isBookmarked(
 /**
  * Toggle bookmark (add if not exists, remove if exists)
  */
-export async function toggleBookmark(bookmark: BookmarkData) {
+export async function toggleBookmark(bookmarkData: BookmarkData) {
   const existing = await db
     .select()
-    .from(Bookmark)
+    .from(bookmark)
     .where(
       and(
-        eq(Bookmark.userId, bookmark.userId),
-        eq(Bookmark.title, bookmark.title)
+        eq(bookmark.userId, bookmarkData.userId),
+        eq(bookmark.title, bookmarkData.title)
       )
     );
 
   if (existing.length > 0) {
     // Remove bookmark
     await db
-      .delete(Bookmark)
+      .delete(bookmark)
       .where(
         and(
-          eq(Bookmark.userId, bookmark.userId),
-          eq(Bookmark.title, bookmark.title)
+          eq(bookmark.userId, bookmarkData.userId),
+          eq(bookmark.title, bookmarkData.title)
         )
       );
     return { action: "removed", bookmark: existing[0] };
   } else {
     // Add bookmark
-    const result = await db.insert(Bookmark).values(bookmark).returning();
+    const result = await db.insert(bookmark).values(bookmarkData).returning();
     return { action: "added", bookmark: result[0] };
   }
 }
