@@ -13,28 +13,6 @@ const { category, bookmarkedOnly = false } = Astro.props;
     
     if (!searchInput) return;
 
-    // Check if user is authenticated before initializing search
-    try {
-      const response = await fetch('/api/auth/session');
-      const session = await response.json();
-      if (!session?.user) {
-        // Hide search bar if user is not authenticated
-        const searchBar = searchInput.closest('[data-intro="search"]');
-        if (searchBar) {
-          searchBar.style.display = 'none';
-        }
-        return;
-      }
-    } catch (error) {
-      console.error('Failed to check session:', error);
-      // Hide search bar on error
-      const searchBar = searchInput.closest('[data-intro="search"]');
-      if (searchBar) {
-        searchBar.style.display = 'none';
-      }
-      return;
-    }
-
     let debounceTimer;
     let abortController = null;
     

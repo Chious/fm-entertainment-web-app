@@ -36,7 +36,14 @@ const thumbnailUrl = typeof thumbnail === 'string' ? thumbnail : thumbnail.mediu
     <div class="image-skeleton w-full aspect-2/3 rounded-lg bg-semi-dark-blue animate-pulse" style="display: none; min-height: 300px;"></div>
     
     <div class="absolute top-2 right-2 md:top-4 md:right-4 z-2">
-      <BookmarkButton client:only="react" isBookmarked={isBookmarked} />
+      <BookmarkButton 
+        client:only="react" 
+        title={title}
+        year={year}
+        category={category}
+        rating={rating}
+        thumbnail={thumbnail}
+      />
     </div>
 
     <div class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

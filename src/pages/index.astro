@@ -7,26 +7,28 @@ import LazyMediaCard from '@/components/LazyMediaCard.astro';
 import { LoginHint } from '@/components/LoginHint';
 import { UserIntro } from '@/components/UserIntro';
 import { fetchTrendingMedia, fetchAllMedia } from '@/lib/media';
-import { getCurrentUser } from '@/lib/auth-utils';
 
 // Set cache header
 Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
 
 // Check if user is authenticated
-const user = await getCurrentUser(Astro);
-const isAuthenticated = !!user;
+const isAuth = !!Astro.locals.user;
+const userId = Astro.locals.user?.id;
 
 // Fetch trending items (top 8 from TMDB's trending API)
-const trendingItems = await fetchTrendingMedia(8);
+const trendingItems = await fetchTrendingMedia(8, userId);
 
 // Fetch recommended items (popular movies + TV shows)
-const recommendedItems = await fetchAllMedia(12, 12);
+const recommendedItems = await fetchAllMedia(12, 12, userId);
 ---
 
 <Layout title="Home - Entertainment Web App">
 	<div class="w-full max-w-[1440px] mx-auto">
-		{isAuthenticated && <SearchBar />}
-		<LoginHint client:only="react" />
+		{isAuth ? (
+			<SearchBar />
+		) : (
+			<LoginHint client:only="react"/>
+		)}
 		<UserIntro client:only="react" />
 
 		<section class="mb-6 md:mb-10 trending-section" data-intro="trending">
@@ -64,5 +66,5 @@ const recommendedItems = await fetchAllMedia(12, 12);
 		</section>
 	</div>
 
-	{isAuthenticated && <SearchScript category={undefined} />}
+	{isAuth && <SearchScript category={undefined} /> }
 </Layout>

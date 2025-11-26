@@ -3,23 +3,27 @@ import Layout from '@/layouts/Layout.astro';
 import SearchBar from '@/components/SearchBar.astro';
 import SearchScript from '@/components/SearchScript.astro';
 import LazyMediaCard from '@/components/LazyMediaCard.astro';
+import { LoginHint } from '@/components/LoginHint';
 import { fetchTVSeries } from '@/lib/media';
-import { getCurrentUser } from '@/lib/auth-utils';
 
 // Set cache header
 Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
 
 // Check if user is authenticated
-const user = await getCurrentUser(Astro);
-const isAuthenticated = !!user;
+const isAuth = !!Astro.locals.user;
+const userId = Astro.locals.user?.id;
 
 // Fetch only TV series from OMDB API
-const tvSeriesItems = await fetchTVSeries();
+const tvSeriesItems = await fetchTVSeries(20, userId);
 ---
 
 <Layout title="TV Series - Entertainment Web App">
 	<div class="w-full max-w-[1440px] mx-auto">
-		{isAuthenticated && <SearchBar placeholder="Search for TV series" />}
+		{isAuth ? (
+			<SearchBar placeholder="Search for TV series" />
+		) : (
+			<LoginHint client:only="react" />
+		)}
 
 		<section class="mb-8">
 			<h2 class="text-xl md:text-[32px] font-light tracking-tight md:tracking-[-0.5px] mb-4 md:mb-6 text-pure-white">TV Series</h2>
@@ -40,6 +44,6 @@ const tvSeriesItems = await fetchTVSeries();
 		</section>
 	</div>
 
-	{isAuthenticated && <SearchScript category="TV Series" />}
+	{isAuth && <SearchScript category="TV Series" />}
 </Layout>
 

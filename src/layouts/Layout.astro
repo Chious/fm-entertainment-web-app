@@ -4,12 +4,14 @@ import "@/styles/global.css";
 import '@fontsource-variable/outfit';
 import ClientRouter from "astro/components/ClientRouter.astro";
 import SpeedInsights from "@vercel/speed-insights/astro"
+import { Toaster } from "@/components/ui/sonner";
 
 interface Props {
 	title?: string;
 }
 
 const { title = "Entertainment Web App" } = Astro.props;
+
 ---
 
 <!doctype html>
@@ -29,6 +31,7 @@ const { title = "Entertainment Web App" } = Astro.props;
 				<slot />
 			</main>
 		</div>
+		<Toaster client:only="react"/>
 		<SpeedInsights/>
 	</body>
 </html>

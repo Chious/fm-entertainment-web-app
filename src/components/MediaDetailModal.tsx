@@ -168,7 +168,30 @@ export function MediaDetailModal({
                       </div>
                     </div>
                     <BookmarkButton
-                      isBookmarked={isBookmarked}
+                      title={title}
+                      year={
+                        "release_date" in detail && detail.release_date
+                          ? new Date(detail.release_date).getFullYear()
+                          : "first_air_date" in detail && detail.first_air_date
+                          ? new Date(detail.first_air_date).getFullYear()
+                          : undefined
+                      }
+                      category={category}
+                      rating={
+                        detail.vote_average
+                          ? detail.vote_average.toFixed(1)
+                          : undefined
+                      }
+                      thumbnail={
+                        posterUrl
+                          ? {
+                              small: posterUrl,
+                              medium: posterUrl,
+                              large: posterUrl,
+                            }
+                          : undefined
+                      }
+                      imdbId={"imdb_id" in detail ? detail.imdb_id : undefined}
                       onToggle={() => setIsBookmarked(!isBookmarked)}
                     />
                   </div>

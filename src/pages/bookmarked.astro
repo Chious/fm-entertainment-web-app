@@ -3,31 +3,68 @@ import Layout from '@/layouts/Layout.astro';
 import SearchBar from '@/components/SearchBar.astro';
 import SearchScript from '@/components/SearchScript.astro';
 import LazyMediaCard from '@/components/LazyMediaCard.astro';
-import { fetchBookmarkedMedia, filterMedia } from '@/lib/media';
-import { requireAuth } from '@/lib/auth-utils';
+import { fetchUserBookmarkedMedia, filterMedia } from '@/lib/media';
 
 // Set cache header
 Astro.response.headers.set('Cache-Control', 'public, max-age=1800, stale-while-revalidate=3600');
 
-// Require authentication for bookmarked page
-const user = await requireAuth(Astro);
-if (user instanceof Response) {
-  return user;
-}
+const isAuth = !!Astro.locals.user;
+const userId = Astro.locals.user?.id;
 
-// Fetch bookmarked items from OMDB API
-const bookmarkedItems = await fetchBookmarkedMedia();
+// Fetch bookmarked items from database with error handling
+let bookmarkedItems: Awaited<ReturnType<typeof fetchUserBookmarkedMedia>> = [];
+let fetchError: Error | null = null;
+
+if (isAuth && userId) {
+  try {
+    bookmarkedItems = await fetchUserBookmarkedMedia(userId);
+  } catch (error) {
+    console.error('Error fetching bookmarked media:', error);
+    fetchError = error instanceof Error ? error : new Error('Failed to fetch bookmarked items');
+    // Continue with empty array to show error message
+  }
+}
 
 // Separate by category
 const bookmarkedMovies = filterMedia(bookmarkedItems, { category: "Movie" });
 const bookmarkedTVSeries = filterMedia(bookmarkedItems, { category: "TV Series" });
+
+const initialBookmarks = bookmarkedItems.map(item => ({
+  title: item.title,
+  isBookmarked: item.isBookmarked
+}));
+
 ---
 
 <Layout title="Bookmarked - Entertainment Web App">
 	<div class="w-full max-w-[1440px] mx-auto">
 		<SearchBar placeholder="Search for bookmarked shows" />
 
-		{bookmarkedMovies.length > 0 && (
+		{!isAuth && (
+			<div class="bg-dark-blue/50 border border-greyish-blue rounded-lg p-6 md:p-8 mb-8">
+				<h3 class="text-xl md:text-2xl font-light text-pure-white mb-3">Login Required</h3>
+				<p class="text-greyish-blue text-sm md:text-base mb-4">
+					Please log in to view and manage your bookmarked shows.
+				</p>
+				<a
+					href="/login"
+					class="inline-block bg-red hover:bg-red/80 text-pure-white px-6 py-2 rounded-md transition-colors text-sm md:text-base"
+				>
+					Go to Login
+				</a>
+			</div>
+		)}
+
+		{isAuth && fetchError && (
+			<div class="bg-red/20 border border-red rounded-lg p-6 mb-8">
+				<h3 class="text-xl font-light text-pure-white mb-2">Error Loading Bookmarks</h3>
+				<p class="text-greyish-blue text-sm md:text-base">
+					{fetchError.message || 'Failed to load your bookmarked items. Please try refreshing the page.'}
+				</p>
+			</div>
+		)}
+
+		{isAuth && bookmarkedMovies.length > 0 && (
 			<section class="mb-8">
 				<h2 class="text-xl md:text-[32px] font-light tracking-tight md:tracking-[-0.5px] mb-4 md:mb-6 text-pure-white">Bookmarked Movies</h2>
 				<div class="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-y-6 md:gap-x-8 lg:grid-cols-4 lg:gap-y-8 lg:gap-x-10">
@@ -47,7 +84,7 @@ const bookmarkedTVSeries = filterMedia(bookmarkedItems, { category: "TV Series" 
 			</section>
 		)}
 
-		{bookmarkedTVSeries.length > 0 && (
+		{isAuth && bookmarkedTVSeries.length > 0 && (
 			<section class="mb-8">
 				<h2 class="text-xl md:text-[32px] font-light tracking-tight md:tracking-[-0.5px] mb-4 md:mb-6 text-pure-white">Bookmarked TV Series</h2>
 				<div class="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-y-6 md:gap-x-8 lg:grid-cols-4 lg:gap-y-8 lg:gap-x-10">
@@ -67,7 +104,7 @@ const bookmarkedTVSeries = filterMedia(bookmarkedItems, { category: "TV Series" 
 			</section>
 		)}
 
-		{bookmarkedMovies.length === 0 && bookmarkedTVSeries.length === 0 && (
+		{isAuth && bookmarkedMovies.length === 0 && bookmarkedTVSeries.length === 0 && !fetchError && (
 			<div class="flex flex-col items-center justify-center py-20">
 				<p class="text-pure-white text-xl md:text-2xl opacity-50">No bookmarked shows yet</p>
 			</div>
@@ -75,5 +112,10 @@ const bookmarkedTVSeries = filterMedia(bookmarkedItems, { category: "TV Series" 
 	</div>
 
 	<SearchScript bookmarkedOnly={true} />
+
+	<script define:vars={{ initialBookmarks }}>
+		import { initializeBookmarks } from '@/stores/bookmarkStore';
+		initializeBookmarks(initialBookmarks);
+	 </script>
 </Layout>
 
